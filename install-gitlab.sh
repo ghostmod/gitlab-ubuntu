@@ -63,11 +63,13 @@ ${SUDO} "${gituser}" chmod 0755 ./bin/install && ./bin/install
 
 # ###################################################################
 # TODO!!!!
-#mysql -u root -p"${mysqlpass}" "CREATE USER 'gitlab'@'localhost' IDENTIFIED BY ${mysqlpass}"
-#mysql -u root -p "CREATE DATABASE IF NOT EXISTS `gitlabhq_production` DEFAULT CHARACTER SET `utf8` COLLATE `utf8_unicode_ci`"
-#mysql -u root -p "GRANT SELECT, LOCK TABLES, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER ON `gitlabhq_production`.* TO 'gitlab'@'localhost'"
-## Try connecting to the new database with the new user
-#sudo -u git -H mysql -u gitlab -p -D gitlabhq_production
+# mysql -u root -p"${mysqlpass}" "CREATE USER 'gitlab'@'localhost' IDENTIFIED BY ${mysqlpass}"
+# mysql -u root -p \
+# 	"CREATE DATABASE IF NOT EXISTS `gitlabhq_production` DEFAULT CHARACTER SET `utf8` COLLATE `utf8_unicode_ci`"
+# mysql -u root -p \
+# 	"GRANT SELECT, LOCK TABLES, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER ON `gitlabhq_production`.* TO 'gitlab'@'localhost'"
+# # Try connecting to the new database with the new user
+# sudo -u git -H mysql -u gitlab -p -D gitlabhq_production
 # ####################################################################
 
 cd "${githome}"
