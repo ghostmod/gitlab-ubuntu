@@ -2,6 +2,15 @@
 
 # usage:  e.g. ethdev=eth0 rev="5-2-stable" install-gitlab.sh
 
+die() {
+	message="${1}" ; shift
+	errcd="${2}"   ; shift
+	echo "${message}"
+	exit ${errcd}
+}
+
+die "this script is NOT YET usable!!!" 1
+
 case "$0" in
   /*) self=$0 ;;
   *) self=$(pwd)/$0 ;;
@@ -20,10 +29,8 @@ fi
 : ${gituser:="git"}
 : ${mysqlpass:="foobar"}
 : ${rev:="5-2-stable"}
-#: ${gitlabuser:="gitlab"}
 
 githome="/home/${gituser}"
-#gitlabhome="/home/${gitlabuser}"
 
 # the list of Ubuntu packages to install
 REQUIRED_PACKAGE="build-essential checkinstall curl gcc git git-core \
@@ -34,7 +41,6 @@ REQUIRED_PACKAGE="build-essential checkinstall curl gcc git git-core \
 	vim zlib1g-dev mysql-server mysql-common mysql-client libmysqlclient-dev"
 
 SUDO="sudo -H -u"
-ETH_ADAPTER="eth0"
 
 # install Ubuntu packages
 apt-get update
@@ -65,7 +71,8 @@ ${SUDO} "${gituser}" chmod 0755 ./bin/install && ./bin/install
 # ####################################################################
 
 cd "${githome}"
-${SUDO} "${gituser}" git clone https://github.com/gitlabhq/gitlabhq.git gitlab
+${SUDO} "${gituser}" \
+	git clone https://github.com/gitlabhq/gitlabhq.git gitlab
 cd "${githome}/gitlab"
 ${SUDO} "${gituser}" git checkout "${rev}"
 
