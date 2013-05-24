@@ -131,11 +131,4 @@ echo "NOTE: It will take a while to load the page the first time it is accessed,
 echo "due to compiling times on java-script, jquery core, and css files."
 echo ""
 
-
-
-
-
-
-
-
-
+# EOF
