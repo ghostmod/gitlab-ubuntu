@@ -60,10 +60,11 @@ SUDO="sudo -H -u"
 
 # install Ubuntu packages
 echo "Installing required Ubuntu packages ... This might take a minute!"
-(apt-get update && \
-	apt-get upgrade -y > /dev/null 2>&1 && \
-  apt-get install -y ${REQUIRED_PACKAGES}) || \
-	echo "installation of required Ubuntu packages failed"
+(
+	echo "apt-get update" && \
+	apt-get update > /dev/null 2>&1 && \
+	apt-get install -y ${REQUIRED_PACKAGES}
+) || echo "installation of required Ubuntu packages failed"
 
 exit 1
 # add needed git users
