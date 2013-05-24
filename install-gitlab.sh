@@ -19,34 +19,53 @@ esac
 selfdir=$( (cd "${self%/?*}" && pwd) )
 [ "$selfdir" ] || exit 1
 
-if [ "${UID}" != 0 ] ; then
+if [ $(id -u) != "0" ] ; then
 	echo "This script must be run as user root"
 	exit 1
 fi
 
 # the ethernet adapter to use
+
 : ${ethdev:="eth0"}
 : ${gituser:="git"}
-: ${mysqlpass:="foobar"}
 : ${rev:="5-2-stable"}
+
+: ${mysqluser:="root"}
+: ${mysqlpass:="GhuP3412,bv"}
 
 githome="/home/${gituser}"
 
 # the list of Ubuntu packages to install
-REQUIRED_PACKAGE="build-essential checkinstall curl gcc git git-core \
+REQUIRED_PACKAGES="build-essential checkinstall curl gcc git git-core \
 	libc6-dev libcurl4-openssl-dev libffi-dev libgdbm-dev libicu-dev \
 	libncurses5-dev libreadline-dev libreadline6-dev libsqlite3-dev \
 	libssl-dev libxml2-dev libxslt-dev libyaml-dev make openssh-server \
 	postfix python-dev python-pip redis-server ruby1.9.3 sqlite3 sudo \
-	vim zlib1g-dev mysql-server mysql-common mysql-client libmysqlclient-dev"
+	vim zlib1g-dev"
+
+# Shall we install MySQL server?  If yes, configure it automatically
+# FIXME:  let user choose if he wants PostgreSQL instead?
+echo -n "Shall ${0} install MySQL Server? [Y|n] " ; read install_mysql
+install_mysql=$(echo "${install_mysql}" | tr "[:lower:]" "[:upper:]")
+if [[ -z ${install_mysql} || ${install_mysql} == "Y" ]]; then
+	REQUIRED_PACKAGES+=" mysql-common mysql-client mysql-server libmysqlclient-dev"
+	# prepare for non-interactive configuration
+	echo "mysql-server-5.5 mysql-server/root_password password ${mysqlpass}" | \
+		debconf-set-selections
+	echo "mysql-server-5.5 mysql-server/root_password_again password ${mysqlpass}" | \
+		debconf-set-selections
+fi
 
 SUDO="sudo -H -u"
 
 # install Ubuntu packages
-apt-get update
-apt-get upgrade -y
-apt-get install -y "${REQUIRED_PACKAGES}"
+echo "Installing required Ubuntu packages ... This might take a minute!"
+(apt-get update && \
+	apt-get upgrade -y > /dev/null 2>&1 && \
+  apt-get install -y ${REQUIRED_PACKAGES}) || \
+	echo "installation of required Ubuntu packages failed"
 
+exit 1
 # add needed git users
 adduser --disabled-login --gecos 'GitLab' "${gituser}"
 
