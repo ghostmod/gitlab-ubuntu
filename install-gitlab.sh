@@ -60,18 +60,15 @@ SUDO="sudo -H -u"
 
 # install Ubuntu packages
 echo "Installing required Ubuntu packages ... This might take a minute!"
-(
-	echo "apt-get update" && \
+( echo "apt-get update" && \
 	apt-get update > /dev/null 2>&1 && \
 	apt-get install -y ${REQUIRED_PACKAGES}
 ) || echo "installation of required Ubuntu packages failed"
 
-exit 1
 # add needed git users
 adduser --disabled-login --gecos 'GitLab' "${gituser}"
 
 # install GitLab shell
-#sudo su "${gituser}"
 cd "${githome}"
 ${SUDO} "${gituser}" git clone https://github.com/gitlabhq/gitlab-shell.git
 ${SUDO} "${gituser}" test -d gitlab-shell && cd gitlab-shell
