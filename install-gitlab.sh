@@ -18,57 +18,105 @@ fi
 # the ethernet adapter to use
 : ${ethdev:="eth0"}
 : ${gituser:="git"}
-: ${gitlabuser:="gitlab"}
+: ${mysqlpass:="foobar"}
+: ${rev:="5-2-stable"}
+#: ${gitlabuser:="gitlab"}
+
+githome="/home/${gituser}"
+#gitlabhome="/home/${gitlabuser}"
 
 # the list of Ubuntu packages to install
-REQUIRED_PACKAGES="git git-core gcc libxml2-dev libxslt-dev sqlite3 \
-  libsqlite3-dev libcurl4-openssl-dev libreadline6-dev libc6-dev \
-  libssl-dev make build-essential zlib1g-dev libicu-dev redis-server \
-  openssh-server python-dev python-pip libyaml-dev postfix ruby1.9.3"
+REQUIRED_PACKAGE="build-essential checkinstall curl gcc git git-core \
+	libc6-dev libcurl4-openssl-dev libffi-dev libgdbm-dev libicu-dev \
+	libncurses5-dev libreadline-dev libreadline6-dev libsqlite3-dev \
+	libssl-dev libxml2-dev libxslt-dev libyaml-dev make openssh-server \
+	postfix python-dev python-pip redis-server ruby1.9.3 sqlite3 sudo \
+	vim zlib1g-dev mysql-server mysql-common mysql-client libmysqlclient-dev"
 
 SUDO="sudo -H -u"
 ETH_ADAPTER="eth0"
 
 # install Ubuntu packages
+apt-get update
+apt-get upgrade -y
 apt-get install -y "${REQUIRED_PACKAGES}"
 
 # add needed git users
-adduser --system --shell /bin/bash --gecos 'git user' --group \
-	--disabled-password --home "/home/${gituser}" "${gituser}"
-adduser --disabled-login --gecos 'gitlab system user' "${gitlabuser}"
+adduser --disabled-login --gecos 'GitLab' "${gituser}"
 
-# exchange user groups
-usermod -a -G "${gituser}" "${gitlabuser}"
-usermod -a -G "${gitlabuser}" "${gituser}"
+# install GitLab shell
+#sudo su "${gituser}"
+cd "${githome}"
+${SUDO} "${gituser}" git clone https://github.com/gitlabhq/gitlab-shell.git
+${SUDO} "${gituser}" test -d gitlab-shell && cd gitlab-shell
+${SUDO} "${gituser}" git checkout v1.4.0 # required for 5.2.0
+${SUDO} "${gituser}" cp config.yml.example config.yml # TODO
+${SUDO} "${gituser}" chmod 0755 ./bin/install && ./bin/install
+
+# MySQL setup
+
+# ###################################################################
+# TODO!!!!
+#mysql -u root -p"${mysqlpass}" "CREATE USER 'gitlab'@'localhost' IDENTIFIED BY ${mysqlpass}"
+#mysql -u root -p "CREATE DATABASE IF NOT EXISTS `gitlabhq_production` DEFAULT CHARACTER SET `utf8` COLLATE `utf8_unicode_ci`"
+#mysql -u root -p "GRANT SELECT, LOCK TABLES, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER ON `gitlabhq_production`.* TO 'gitlab'@'localhost'"
+## Try connecting to the new database with the new user
+#sudo -u git -H mysql -u gitlab -p -D gitlabhq_production
+# ####################################################################
+
+cd "${githome}"
+${SUDO} "${gituser}" git clone https://github.com/gitlabhq/gitlabhq.git gitlab
+cd "${githome}/gitlab"
+${SUDO} "${gituser}" git checkout "${rev}"
+
+# Configure GitLab
+
+cd "${githome}"
+${SUDO} "${gituser}" cp config/gitlab.yml.example config/gitlab.yml
+#${SUDO} "${gituser}" vim config/gitlab.yml ## TODO
+
+mkdirs="${githome}/gitlab-satellites log tmp tmp/pids tmp/sockets public/uploads"
+for dir in ${mkdirs} ; do
+	${SUDO} "${gituser}" mkdir -p "${dir}" && \
+		${SUDO} "${gituser}" chmod -R u+rwX "${dir}"
+done
+
+# Copy the example Puma config
+${SUDO} "${gituser}" cp config/puma.rb.example config/puma.rb
+
+# Configure Git global settings for git user, useful when editing via web
+# Edit user.email according to what is set in gitlab.yml
+${SUDO} "${gituser}" git config --global user.name "GitLab"
+${SUDO} "${gituser}" git config --global user.email "gitlab@localhost"
+
+exit 1 # TODO
 
 # generate RSA key
-gitlabhome="/home/${gitlabuser}"
-githome="/home/${gituser}"
 
-"${SUDO}" "${gitlabuser}" \
+${SUDO} "${gitlabuser}" \
 	"ssh-keygen -q -N '' -t rsa -f ${gitlabhome}/.ssh/id_rsa"
 cp "${gitlabhome}/.ssh/id_rsa.pub" "${githome}/gitlab.pub"
 chmod 0444 "${githome}/gitlab.pub"
 
 # install gitolite
 cd "${githome}"
-"${SUDO}" "${gituser}" mkdir bin
-"${SUDO}" "${gituser}" git clone -b gl-v304 \
+${SUDO} "${gituser}" mkdir bin
+${SUDO} "${gituser}" git clone -b gl-v304 \
 	https://github.com/gitlabhq/gitolite.git gitolite-src
-"${SUDO}" "${gituser}" \
+${SUDO} "${gituser}" \
 	sh -c 'echo "PATH=\$PATH:${githome}/bin" >> ${githome}/.profile'
-"${SUDO}" "${gituser}" \
+${SUDO} "${gituser}" \
 	sh -c 'echo "export PATH" >> ${githome}/.profile'
-"${SUDO}" "${gituser}" \
+${SUDO} "${gituser}" \
 	gitolite-src/install -ln "${githome}/bin"
-"${SUDO}" "${gituser}" \
+${SUDO} "${gituser}" \
 	sh -c 'PATH=${githome}/bin:$PATH; gitolite setup -pk ${githome}/gitlab.pub'
 
 chmod -R g+rwX "${githome}/repositories/"
 chown -R "${gituser}":"${gituser}" "${githome}/repositories/"
 
 # test the install
-"${SUDO}" "${gitlabuser}" \
+${SUDO} "${gitlabuser}" \
 	git clone git@localhost:gitolite-admin.git /tmp/gitolite-admin
 rm -rf /tmp/gitolite-admin
 
@@ -79,24 +127,24 @@ gem install --conservative bundler
 cd "${gitlabhome}"
 
 # clone GitLab
-"${SUDO}" "${gitlabuser}" \
-	git clone -b stable https://github.com/gitlabhq/gitlabhq.git gitlab
+${SUDO} "${gitlabuser}" \
+	git clone -b "${rev}" https://github.com/gitlabhq/gitlabhq.git gitlab
 cd gitlab
 
 # config GitLab
-"${SUDO}" "${gitlabuser}" \
+${SUDO} "${gitlabuser}" \
 	cp config/gitlab.yml.example config/gitlab.yml
 
 # use SQLite (TODO: ??? really  ???)
-"${SUDO}" "${gitlabuser}" \
+${SUDO} "${gitlabuser}" \
 	cp config/database.yml.sqlite config/database.yml
 
 # install gems for database
-"${SUDO}" "${gitlabuser}" \
+${SUDO} "${gitlabuser}" \
 	bundle install --without development test mysql postgres --deployment
 
 # setup the db
-"${SUDO}" "${gitlabuser}" \
+${SUDO} "${gitlabuser}" \
 	bundle exec rake gitlab:app:setup RAILS_ENV=production
 
 # setup hooks
@@ -107,7 +155,7 @@ chown "${gituser}":"${gituser}" \
 
 # check status
 echo "" ; echo "Checking install status ..." ; echo ""
-"${SUDO}" "${gitlabuser}" \
+${SUDO} "${gitlabuser}" \
 	bundle exec rake gitlab:app:status RAILS_ENV=production
 
 echo "" ; echo "Everything passed? Please type 'yes' or 'no'" ; echo ""
@@ -120,7 +168,7 @@ fi
 # test GitLab
 echo "" ; echo "Succeeded." ; echo "Testing the installation"
 cd "${gitlabhome}/gitlab"
-"${SUDO}" "${gitlabuser}" bundle exec rails s -e production
+${SUDO} "${gitlabuser}" bundle exec rails s -e production
 
 echo ""
 IP_ADDR=$(ifconfig ${ethdev} | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1 }')
