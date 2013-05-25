@@ -153,14 +153,7 @@ gem install charlock_holmes --version "${charlock_holmes_ver}"
 cd "${githome}/gitlab"
 ${SUDO} "${gituser}" bundle install --deployment --without development test postgres
 
-exit 1
-
 # Initialize db
-
-# mv "${githome}/gitlab/config/database.yml" "${githome}/gitlab/config/database.yml,pre"
-# cat "${githome}/gitlab/config/database.yml,pre" | \
-# 	sed s/"password:.*$"/"password: \"${mysql_rootpass}\"/" > "${githome}/gitlab/config/database.yml"
-# rm "${githome}/gitlab/config/database.yml,pre"
 
 chown -R "${gituser}":"${gituser}" "${githome}/repositories/"
 cd "${githome}/gitlab"
