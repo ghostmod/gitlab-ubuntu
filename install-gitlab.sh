@@ -193,6 +193,10 @@ ${SUDO} "${gituser}" bundle exec rake sidekiq:start RAILS_ENV=production
 ${SUDO} "${gituser}" bundle exec rake gitlab:env:info RAILS_ENV=production
 ${SUDO} "${gituser}" bundle exec rake gitlab:check RAILS_ENV=production
 
+# Correct ssh permissions
+
+chown -R "${gituser}":"${gituser}" "${githome}/.ssh"
+
 echo "Starting GitLab service"
 service gitlab start
 
