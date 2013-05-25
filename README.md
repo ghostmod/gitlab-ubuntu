@@ -28,8 +28,6 @@ sudo bash install-gitlab.sh
 
 * {ethdev} is the ethernet device to use (Nginx)
 * {rev} is the gitlab revision to install (e.g. 5-2-stable)
-* {mysqluser} is the GitLab MySQL user
-* {mysqlpass} is the GitLab MySQL password
 * {mysql_rootpass} is the root password of your MySQL installation.  If no MySQL is installed yet on your system, omit this variable.
 
 If you specify the mysql_rootpass, but don't want it to be stored in your bash history, just execute:
