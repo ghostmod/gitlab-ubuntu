@@ -22,6 +22,14 @@ where
 * mysql_rootpass is the root password of your MySQL installation.
   If no MySQL is installed, yet, ommit setting this variable
 
+If specify the mysql_rootpass, but don't want it to be come up
+in bash history, just execute:
+
+```bash
+unset HISTFILE
+```
+prior executing the installation script.
+
 **Important**: This script *must* be run as bash script.  Don't use dash,
 don't use sh!
 
