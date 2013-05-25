@@ -54,7 +54,8 @@ REQUIRED_PACKAGES="build-essential checkinstall curl gcc git git-core \
 echo -n "Shall ${0} install MySQL Server? [Y|n] " ; read install_mysql
 install_mysql=$(echo "${install_mysql}" | tr "[:lower:]" "[:upper:]")
 if [[ -z ${install_mysql} || ${install_mysql} == "Y" ]]; then
-	REQUIRED_PACKAGES+=" mysql-common mysql-client mysql-server libmysqlclient-dev"
+	REQUIRED_PACKAGES="${REQUIRED_PACKAGES} mysql-common mysql-client"
+	REQUIRED_PACKAGES="${REQUIRED_PACKAGES} mysql-server libmysqlclient-dev"
 	# prepare for non-interactive configuration
 	echo "mysql-server-5.5 mysql-server/root_password password ${mysql_rootpass}" | \
 		debconf-set-selections
@@ -140,33 +141,17 @@ charlock_holmes_ver='0.6.9.4'
 cd "${githome}"
 gem install charlock_holmes --version "${charlock_holmes_ver}"
 
-exit 1
-
-# fix wrong file encoding!
-f="${githome}/gitlab/vendor/bundle/ruby/1.9.1/specifications/gitlab-grit-2.5.1.gemspec"
-iconv -f iso-8859-1 -t utf8 "${f}" "${f}_utf8"
-rm "${f}"
-mv "${f}_utf8" "${f}"
-
-# fix utf8 typo!
-cat "${f}" | sed s/s.add_runtime_depeîdency/s.add_runtime_dependency/g > "${f}_x"
-rm "${f}"
-mv "${f}_x" "${f}"
-
 cd "${githome}/gitlab"
 ${SUDO} "${gituser}" bundle install --deployment --without development test postgres
 
-# Initialize db
+exit 1
 
-##### STOP HERE, CONFIGURE database.yml to match root PW!
+# Initialize db
 
 mv "${githome}/gitlab/config/database.yml" "${githome}/gitlab/config/database.yml,pre"
 cat "${githome}/gitlab/config/database.yml,pre" | \
-	sed s/"password:.*$"/"password: ${mysql_rootpass}" > "${githome}/gitlab/config/database.yml"
-
-echo "Set root password to ${mysql_rootpass} in ~git/gitlab/config/database.yml "
-echo "and press return when done"
-echo "" ; read
+	sed s/"password:.*$"/"password: \"${mysql_rootpass}\"/" > "${githome}/gitlab/config/database.yml"
+rm "${githome}/gitlab/config/database.yml,pre"
 
 chown -R "${gituser}":"${gituser}" "${githome}/repositories/"
 cd "${githome}/gitlab"
@@ -190,36 +175,31 @@ curl \
 		"https://raw.github.com/gitlabhq/gitlabhq/5-2-stable/lib/support/nginx/gitlab"
 ln -s "/etc/nginx/sites-available/gitlab" "/etc/nginx/sites-enabled/gitlab"
 
-# TODO!
+# Configure Nginx
 
-# # **YOUR_SERVER_FQDN** to the fully-qualified
-# # domain name of your host serving GitLab. Also, replace
-# # the 'listen' line with the following:
-# #   listen 80 default_server;         # e.g., listen 192.168.1.1:80;
-# sudo vim /etc/nginx/sites-available/gitlab
-
-# configure NGINX manually for the moment!
+ipaddr=$(ifconfig ${ethdev} | grep "inet addr:" | cut -d: -f2 | awk '{print $1}')
+mv "/etc/nginx/sites-available/gitlab" "/etc/nginx/sites-available/gitlab,pre"
+cat "/etc/nginx/sites-available/gitlab,pre" | \
+        sed s/YOUR_SERVER_IP/"${ipaddr}"/ > "/etc/nginx/sites-available/gitlab"
+mv "/etc/nginx/sites-available/gitlab" "/etc/nginx/sites-available/gitlab,pre"
+cat "/etc/nginx/sites-available/gitlab,pre" | \
+        sed s/YOUR_SERVER_FQDN/localhost/ > "/etc/nginx/sites-available/gitlab"
+rm "/etc/nginx/sites-enabled/default"
 
 sudo service nginx restart
 
 # Final testing
 
+cd "${githome}/gitlab"
+${SUDO} "${gituser}" bundle exec rake sidekiq:start RAILS_ENV=production
 ${SUDO} "${gituser}" bundle exec rake gitlab:env:info RAILS_ENV=production
 ${SUDO} "${gituser}" bundle exec rake gitlab:check RAILS_ENV=production
-
-echo "" ; echo "Everything passed? [Y|n] " ; echo "" ; read passed
-passed=$(echo "${passed}" | tr "[:lower:]" "[:upper:]")
-if [ "${passed}" != "Y" ] ; then
-	echo "Your answer was not 'yes'.  Exiting."
-	exit 1
-fi
 
 echo "Starting GitLab service"
 service gitlab start
 
 echo ""
-IP_ADDR=$(ifconfig ${ethdev} | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1 }')
-echo "Visit: $IP_ADDR from your browser, and login with:"
+echo "Visit: ${ipaddr} from your browser, and login with:"
 echo "admin@local.host	5iveL!fe"
 echo ""
 echo "NOTE: It will take a while to load the page the first time it is accessed,"
