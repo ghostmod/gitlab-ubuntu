@@ -13,9 +13,7 @@ For example:
 ```bash
 git clone https://github.com/johndoe75/gitlab-ubuntu.git
 cd gitlab-ubuntu
-chmod 755 install-gitlab.sh
-sudo ./install-gitlab.sh
-bash mysql_rootpass="foobar" ethdev="eth0" install-gitlab.sh
+sudo bash mysql_rootpass="foobar" ethdev="eth0" install-gitlab.sh
 ```
 where
 
