@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# usage:  e.g. ethdev=eth0 rev="5-2-stable" install-gitlab.sh
+# usage:  e.g. bash ethdev=eth0 rev="5-2-stable" install-gitlab.sh
 
 die() {
 	message="${1}" ; shift
@@ -8,8 +8,6 @@ die() {
 	echo "${message}"
 	exit ${errcd}
 }
-
-die "this script is NOT YET usable!!!" 1
 
 case "$0" in
   /*) self=$0 ;;
@@ -20,7 +18,7 @@ selfdir=$( (cd "${self%/?*}" && pwd) )
 [ "$selfdir" ] || exit 1
 
 if [ $(id -u) != "0" ] ; then
-	echo "This script must be run as user root"
+	echo "This script must be run as user root. E.g. sudo -s"
 	exit 1
 fi
 
@@ -96,7 +94,7 @@ ${SUDO} "${gituser}" chmod 0755 ./bin/install && ./bin/install
 # MySQL setup
 
 if [[ -z ${install_mysql} || ${install_mysql} == "Y" ]]; then
-	mysql -u root -p"${mysql_rootpass}" < create.sql
+	mysql -u root -p"${mysql_rootpass}" < "${selfdir}/create.sql"
 fi
 
 # Get GitLab from github
@@ -138,9 +136,11 @@ ${SUDO} "${gituser}" cp config/database.yml.mysql config/database.yml
 
 # Install Gems
 
-charlock_holmes_ver='0.6.0.4'
+charlock_holmes_ver='0.6.9.4'
 cd "${githome}"
 gem install charlock_holmes --version "${charlock_holmes_ver}"
+
+exit 1
 
 # fix wrong file encoding!
 f="${githome}/gitlab/vendor/bundle/ruby/1.9.1/specifications/gitlab-grit-2.5.1.gemspec"
@@ -159,6 +159,10 @@ ${SUDO} "${gituser}" bundle install --deployment --without development test post
 # Initialize db
 
 ##### STOP HERE, CONFIGURE database.yml to match root PW!
+
+mv "${githome}/gitlab/config/database.yml" "${githome}/gitlab/config/database.yml,pre"
+cat "${githome}/gitlab/config/database.yml,pre" | \
+	sed s/"password:.*$"/"password: ${mysql_rootpass}" > "${githome}/gitlab/config/database.yml"
 
 echo "Set root password to ${mysql_rootpass} in ~git/gitlab/config/database.yml "
 echo "and press return when done"
