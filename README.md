@@ -32,7 +32,7 @@ sudo bash install-gitlab.sh
 * {mysqlpass} is the GitLab MySQL password
 * {mysql_rootpass} is the root password of your MySQL installation.  If no MySQL is installed yet on your system, omit this variable.
 
-If specify the mysql_rootpass, but don't want it to be stored in your bash history, just execute:
+If you specify the mysql_rootpass, but don't want it to be stored in your bash history, just execute:
 
 ```bash
 unset HISTFILE
@@ -42,7 +42,7 @@ prior executing the installation script.
 **Important**: This script *must* be run as bash script.  Don't use dash,
 don't use sh!
 
-## When installation is done
+### When installation is done
 
 The IP where the webserver is running, is printed at the end of the installation.  The default GitLab admin username and password are "admin@local.host", "5liveL!fe".
 
