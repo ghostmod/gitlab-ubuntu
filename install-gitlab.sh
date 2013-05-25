@@ -207,5 +207,8 @@ echo ""
 echo "NOTE: It will take a while to load the page the first time it is accessed,"
 echo "due to compiling times on java-script, jquery core, and css files."
 echo ""
+echo "If you have adjusted hostname/ip in gitlab/config/gitlab.yml, make sure"
+echo "your gitlab-shell/config.yml matches up!  Otherise you'll not be able to"
+echo "push changes to the server!"
 
 # EOF
