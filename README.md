@@ -20,6 +20,9 @@ where
 * mysql_rootpass is the root password of your MySQL installation.
   If no MySQL is installed, yet, ommit setting this variable
 
+**Important**: This script *must* be run as bash script.  Don't use dash,
+don't use sh!
+
 ## When installation is done
 
 You can login to GitLab at the IP printed at the end of the
