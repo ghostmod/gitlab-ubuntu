@@ -53,6 +53,8 @@ The IP where the webserver is running, is printed at the end of the installation
 * Give user choice to use PostgreSQL or MySQL
 * …
 
+I know, this is not the best style and it's still lacking error catching.  Hope to find the time to improve it.
+
 ## Project Overview
 
 TBD
