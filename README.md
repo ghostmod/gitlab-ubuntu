@@ -3,8 +3,7 @@
 Script(s) for installation of latest GitLab revision on Ubuntu 13.04.
 _Might work with Ubuntu 12.04 LTS as well_.
 
-**Important**: This script is still highly under development!  Use
-with caution!
+**Important**: This script is still under development!  Use with caution!
 
 ## Execute
 
@@ -13,17 +12,20 @@ For example:
 ```bash
 git clone https://github.com/johndoe75/gitlab-ubuntu.git
 cd gitlab-ubuntu
-sudo bash mysql_rootpass="foobar" ethdev="eth0" install-gitlab.sh
+sudo bash ethdev="eth0" gituser="git" \
+	rev="5-2-stable" mysqluser="gitlab" \
+	mysqlpass="gitlab," mysql_rootpass="GhuP3412,bv" \
+	install-gitlab.sh
 ```
 where
 
-* eth0 is the ethernet device to use.  Default: eth0
-* rev is the GitLab revision to install.  Default: 5-2-stable
-* mysql_rootpass is the root password of your MySQL installation.
-  If no MySQL is installed, yet, ommit setting this variable
+* {ethdev} is the ethernet device to use (Nginx)
+* {rev} is the gitlab revision to install (e.g. 5-2-stable)
+* {mysqluser} is the GitLab MySQL user
+* {mysqlpass} is the GitLab MySQL password
+* {mysql_rootpass} is the root password of your MySQL installation.  If no MySQL is installed yet on your system, omit this variable.
 
-If specify the mysql_rootpass, but don't want it to be come up
-in bash history, just execute:
+If specify the mysql_rootpass, but don't want it to be stored in your bash history, just execute:
 
 ```bash
 unset HISTFILE
@@ -35,9 +37,7 @@ don't use sh!
 
 ## When installation is done
 
-You can login to GitLab at the IP printed at the end of the
-installation.  The default username is "admin@local.host" with
-password "5iveL!fe".
+The IP where the webserver is running, is printed at the end of the installation.  The default GitLab admin username and password are "admin@local.host", "5liveL!fe".
 
 # TODO
 
