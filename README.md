@@ -17,7 +17,14 @@ sudo bash ethdev="eth0" gituser="git" \
 	mysqlpass="gitlab," mysql_rootpass="GhuP3412,bv" \
 	install-gitlab.sh
 ```
-where
+
+Any of the variables can be omitted.  If you just want to install with defaults, just execute:
+
+```bash
+git clone https://github.com/johndoe75/gitlab-ubuntu.git
+cd gitlab-ubuntu
+sudo bash install-gitlab.sh
+```
 
 * {ethdev} is the ethernet device to use (Nginx)
 * {rev} is the gitlab revision to install (e.g. 5-2-stable)
