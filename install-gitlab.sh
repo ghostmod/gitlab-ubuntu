@@ -34,20 +34,13 @@ fi
 
 githome="/home/${gituser}"
 
-# Generate RSA key
-
-# ${SUDO} "${gituser}" \
-# 	"ssh-keygen -q -N '' -t rsa -f ${githome}/.ssh/id_rsa"
-# cp "${githome}/.ssh/id_rsa.pub" "${githome}/gitlab.pub"
-# chmod 0444 "${githome}/gitlab.pub"
-
 # the list of Ubuntu packages to install
 REQUIRED_PACKAGES="build-essential checkinstall curl gcc git git-core \
 	libc6-dev libcurl4-openssl-dev libffi-dev libgdbm-dev libicu-dev \
 	libncurses5-dev libreadline-dev libreadline6-dev libsqlite3-dev \
 	libssl-dev libxml2-dev libxslt-dev libyaml-dev make openssh-server \
 	postfix python-dev python-pip redis-server ruby1.9.3 sqlite3 sudo \
-	vim zlib1g-dev nginx gawk"
+	vim zlib1g-dev nginx gawk libmysqlclient-dev"
 
 # Shall we install MySQL server?  If yes, configure it automatically
 # FIXME:  let user choose if he wants PostgreSQL instead?
@@ -55,7 +48,7 @@ echo -n "Shall ${0} install MySQL Server? [Y|n] " ; read install_mysql
 install_mysql=$(echo "${install_mysql}" | tr "[:lower:]" "[:upper:]")
 if [[ -z ${install_mysql} || ${install_mysql} == "Y" ]]; then
 	REQUIRED_PACKAGES="${REQUIRED_PACKAGES} mysql-common mysql-client"
-	REQUIRED_PACKAGES="${REQUIRED_PACKAGES} mysql-server libmysqlclient-dev"
+	REQUIRED_PACKAGES="${REQUIRED_PACKAGES} mysql-server"
 	# prepare for non-interactive configuration
 	echo "mysql-server-5.5 mysql-server/root_password password ${mysql_rootpass}" | \
 		debconf-set-selections
