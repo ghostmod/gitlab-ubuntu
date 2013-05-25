@@ -47,7 +47,7 @@ REQUIRED_PACKAGES="build-essential checkinstall curl gcc git git-core \
 	libncurses5-dev libreadline-dev libreadline6-dev libsqlite3-dev \
 	libssl-dev libxml2-dev libxslt-dev libyaml-dev make openssh-server \
 	postfix python-dev python-pip redis-server ruby1.9.3 sqlite3 sudo \
-	vim zlib1g-dev nginx"
+	vim zlib1g-dev nginx gawk"
 
 # Shall we install MySQL server?  If yes, configure it automatically
 # FIXME:  let user choose if he wants PostgreSQL instead?
@@ -110,8 +110,9 @@ ${SUDO} "${gituser}" git checkout "${rev}"
 
 cd "${githome}/gitlab"
 ${SUDO} "${gituser}" cp config/gitlab.yml.example config/gitlab.yml
-# FIXME
-#${SUDO} "${gituser}" vim config/gitlab.yml ## TODO
+
+echo "Adjust ${githome}/gitlab/config/gitlab.yml to match your needs.  Press any key when done."
+read
 
 mkdirs="${githome}/gitlab-satellites log tmp tmp/pids"
 mkdirs="${mkdirs} tmp/sockets public/uploads"
@@ -126,6 +127,9 @@ done
 # FIXME: auto configuration
 ${SUDO} "${gituser}" cp config/puma.rb.example config/puma.rb
 
+echo "Adjust ${githome}/gitlab/config/puma.rb to match your needs.  Press any key when done."
+read
+
 # Configure Git global settings for git user, useful when editing via web
 # Edit user.email according to what is set in gitlab.yml
 ${SUDO} "${gituser}" git config --global user.name "GitLab"
@@ -135,8 +139,13 @@ ${SUDO} "${gituser}" git config --global user.email "gitlab@localhost"
 
 ${SUDO} "${gituser}" cp config/database.yml.mysql config/database.yml
 
+echo "Adjust ${githome}/gitlab/config/database.yml to match your needs."
+echo "Your MySQL root password is: ${mysql_rootpass} -- press any key when done."
+read
+
 # Install Gems
 
+echo "" ; echo "Installing charlock_holmes"
 charlock_holmes_ver='0.6.9.4'
 cd "${githome}"
 gem install charlock_holmes --version "${charlock_holmes_ver}"
@@ -148,10 +157,10 @@ exit 1
 
 # Initialize db
 
-mv "${githome}/gitlab/config/database.yml" "${githome}/gitlab/config/database.yml,pre"
-cat "${githome}/gitlab/config/database.yml,pre" | \
-	sed s/"password:.*$"/"password: \"${mysql_rootpass}\"/" > "${githome}/gitlab/config/database.yml"
-rm "${githome}/gitlab/config/database.yml,pre"
+# mv "${githome}/gitlab/config/database.yml" "${githome}/gitlab/config/database.yml,pre"
+# cat "${githome}/gitlab/config/database.yml,pre" | \
+# 	sed s/"password:.*$"/"password: \"${mysql_rootpass}\"/" > "${githome}/gitlab/config/database.yml"
+# rm "${githome}/gitlab/config/database.yml,pre"
 
 chown -R "${gituser}":"${gituser}" "${githome}/repositories/"
 cd "${githome}/gitlab"
@@ -178,12 +187,8 @@ ln -s "/etc/nginx/sites-available/gitlab" "/etc/nginx/sites-enabled/gitlab"
 # Configure Nginx
 
 ipaddr=$(ifconfig ${ethdev} | grep "inet addr:" | cut -d: -f2 | awk '{print $1}')
-mv "/etc/nginx/sites-available/gitlab" "/etc/nginx/sites-available/gitlab,pre"
-cat "/etc/nginx/sites-available/gitlab,pre" | \
-        sed s/YOUR_SERVER_IP/"${ipaddr}"/ > "/etc/nginx/sites-available/gitlab"
-mv "/etc/nginx/sites-available/gitlab" "/etc/nginx/sites-available/gitlab,pre"
-cat "/etc/nginx/sites-available/gitlab,pre" | \
-        sed s/YOUR_SERVER_FQDN/localhost/ > "/etc/nginx/sites-available/gitlab"
+sed s/"YOUR_SERVER_IP"/"${ipaddr}"/ -i "/etc/nginx/sites-available/gitlab"
+sed s/"YOUR_SERVER_FQDN"/"localhost"/ -i "/etc/nginx/sites-available/gitlab"
 rm "/etc/nginx/sites-enabled/default"
 
 sudo service nginx restart
