@@ -28,8 +28,6 @@ fi
 : ${gituser:="git"}
 : ${rev:="5-2-stable"}
 
-: ${mysqluser:="gitlab"}
-: ${mysqlpass:="gitlab,"}
 : ${mysql_rootpass:="GhuP3412,bv"}
 
 githome="/home/${gituser}"
