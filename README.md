@@ -13,8 +13,7 @@ For example:
 git clone https://github.com/johndoe75/gitlab-ubuntu.git
 cd gitlab-ubuntu
 sudo bash ethdev="eth0" gituser="git" \
-	rev="5-2-stable" mysqluser="gitlab" \
-	mysqlpass="gitlab," mysql_rootpass="GhuP3412,bv" \
+	rev="5-2-stable" mysql_rootpass="GhuP3412,bv" \
 	install-gitlab.sh
 ```
 
